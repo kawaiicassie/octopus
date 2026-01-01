@@ -15,7 +15,7 @@ cd ..
 mv web/out static/
 
 # Build Go binary với version info
-go build -tags netgo -ldflags "-X 'github.com/bestruirui/octopus/internal/conf.Version=$GIT_VERSION' \
-  -X 'github.com/bestruirui/octopus/internal/conf.Commit=$COMMIT_ID' \
-  -X 'github.com/bestruirui/octopus/internal/conf.BuildTime=$BUILD_TIME' \
+go build -tags netgo -ldflags "-X 'github.com/kawaiicassie/octopus/internal/conf.Version=$GIT_VERSION' \
+  -X 'github.com/kawaiicassie/octopus/internal/conf.Commit=$COMMIT_ID' \
+  -X 'github.com/kawaiicassie/octopus/internal/conf.BuildTime=$BUILD_TIME' \
   -s -w" -o app

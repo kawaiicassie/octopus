@@ -10,13 +10,13 @@ services:
       - key: OCTOPUS_SERVER_PORT
         value: 8080
       # Option 1: SQLite (đơn giản, không lo network transfer)
-      - key: OCTOPUS_DATABASE_TYPE
-        value: sqlite
-      - key: OCTOPUS_DATABASE_PATH
-        value: /opt/render/project/.render/data.db
-
-      # Option 2: PostgreSQL (comment option 1, uncomment dưới)
       # - key: OCTOPUS_DATABASE_TYPE
-      #   value: postgres
+      #   value: sqlite
       # - key: OCTOPUS_DATABASE_PATH
-      #   value: "postgresql://[USER]:[PASSWORD]@[HOST]:5432/postgres?sslmode=require"
+      #   value: /opt/render/project/.render/data.db
+
+      # Option 2: PostgreSQL với Supabase Pooler (port 5432)
+      - key: OCTOPUS_DATABASE_TYPE
+        value: postgres
+      - key: OCTOPUS_DATABASE_PATH
+        value: "postgresql://postgres.psqxoyvmdtuswysnifez:Krgjami1250@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require&pool_max_conns=3"
