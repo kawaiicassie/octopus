@@ -46,21 +46,21 @@ func Handler(inboundType inbound.InboundType, c *gin.Context) {
 		// Estimate input tokens (rough approximation: 1 token ≈ 4 characters)
 		estimatedTokens := 0
 		for _, msg := range internalRequest.Messages {
-			if msg.Content != nil {
-				// Handle string content
-				if strContent, ok := msg.Content.(string); ok {
-					estimatedTokens += len(strContent) / 4
-				}
-				// Handle array content (for multimodal)
-				if arrContent, ok := msg.Content.([]interface{}); ok {
-					for _, part := range arrContent {
-						if partMap, ok := part.(map[string]interface{}); ok {
-							if text, exists := partMap["text"]; exists {
-								if textStr, ok := text.(string); ok {
-									estimatedTokens += len(textStr) / 4
-								}
-							}
-						}
+			// Handle string content
+			if msg.Content.Content != nil {
+				estimatedTokens += len(*msg.Content.Content) / 4
+			}
+			// Handle multimodal content (array of parts)
+			if len(msg.Content.MultipleContent) > 0 {
+				for _, part := range msg.Content.MultipleContent {
+					// Count text parts
+					if part.Type == "text" && part.Text != nil {
+						estimatedTokens += len(*part.Text) / 4
+					}
+					// Note: Image/audio parts also consume tokens but harder to estimate
+					// For now we'll add a fixed estimate for non-text parts
+					if part.Type != "text" {
+						estimatedTokens += 100 // Rough estimate for image/audio metadata
 					}
 				}
 			}
