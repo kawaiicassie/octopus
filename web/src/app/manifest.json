@@ -1,11 +1,11 @@
 {
-  "name": "Octopus",
-  "short_name": "Octopus",
-  "description": "为个人打造的简单、美观、优雅的 LLM API 聚合与负载均衡服务",
+  "name": "x-x Proxy",
+  "short_name": "x-x",
+  "description": "A Moe API Gateway",
   "id": "/",
   "start_url": "/",
   "scope": "/",
-  "lang": "zh-CN",
+  "lang": "en-US",
   "dir": "ltr",
   "display": "standalone",
   "orientation": "any",
@@ -42,34 +42,34 @@
       "sizes": "1437x918",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "首页仪表盘"
+      "label": "Dashboard"
     },
     {
       "src": "/screenshot/desktop-channel.png",
       "sizes": "1437x918",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "渠道管理"
+      "label": "Channel Management"
     },
     {
       "src": "/screenshot/mobile-home.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "移动端首页"
+      "label": "Mobile Dashboard"
     },
     {
       "src": "/screenshot/mobile-channel.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "移动端渠道"
+      "label": "Mobile Channel Management"
     }
   ],
   "shortcuts": [
     {
-      "name": "渠道管理",
-      "short_name": "渠道",
+      "name": "Channel Management",
+      "short_name": "Channel",
       "url": "/channel",
       "icons": [
         {
@@ -80,8 +80,8 @@
       ]
     },
     {
-      "name": "模型价格管理",
-      "short_name": "价格",
+      "name": "Model Management",
+      "short_name": "Model",
       "url": "/model",
       "icons": [
         {
@@ -92,8 +92,8 @@
       ]
     },
     {
-      "name": "分组管理",
-      "short_name": "分组",
+      "name": "Group Management",
+      "short_name": "Group",
       "url": "/group",
       "icons": [
         {

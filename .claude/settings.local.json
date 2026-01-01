@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(CLAUDE.md)"
+      "Bash(CLAUDE.md)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
