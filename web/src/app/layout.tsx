@@ -17,15 +17,15 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#eae9e3" />
-        <meta name="application-name" content="Octopus" />
+        <meta name="application-name" content="x-x" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="Octopus" />
+        <meta name="apple-mobile-web-app-title" content="x-x" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-status-bar-style" content="black" />
-        <meta name="mobile-web-app-title" content="Octopus" />
+        <meta name="mobile-web-app-title" content="x-x" />
         <link rel="manifest" href="/manifest.json" />
-        <title>Octopus</title>
+        <title>x-x</title>
         <style
           dangerouslySetInnerHTML={{
             __html: `
