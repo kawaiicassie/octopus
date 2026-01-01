@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/bestruirui/octopus/internal/conf"
 	"github.com/bestruirui/octopus/internal/op"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -15,7 +14,7 @@ func GenerateJWTToken(expiresMin int) (string, string, error) {
 	claims := &jwt.RegisteredClaims{
 		IssuedAt:  jwt.NewNumericDate(now),
 		NotBefore: jwt.NewNumericDate(now),
-		Issuer:    conf.APP_NAME,
+		Issuer:    "xix",
 	}
 	if expiresMin == 0 {
 		claims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Duration(15) * time.Minute))

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bestruirui/octopus/internal/conf"
 	"github.com/bestruirui/octopus/internal/op"
 	"github.com/bestruirui/octopus/internal/server/auth"
 	"github.com/bestruirui/octopus/internal/server/resp"
@@ -48,7 +47,7 @@ func APIKeyAuth() gin.HandlerFunc {
 			return
 		}
 
-		if !strings.HasPrefix(apiKey, "moe-" + "xix" + "-") {
+		if !strings.HasPrefix(apiKey, "moe-"+"xix"+"-") {
 			resp.Error(c, http.StatusUnauthorized, resp.ErrUnauthorized)
 			c.Abort()
 			return
