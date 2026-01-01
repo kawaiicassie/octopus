@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/bestruirui/octopus/internal/transformer/model"
+	"github.com/bestruirui/octopus/internal/utils/log"
 )
 
 type ChatOutbound struct{}
@@ -73,6 +74,9 @@ func (o *ChatOutbound) TransformResponse(ctx context.Context, response *http.Res
 
 	// Post-process reasoning content for flexible format handling
 	o.processReasoningContent(&resp, body)
+
+	// Try to extract Gemini thinking from other possible locations
+	o.extractGeminiThinking(&resp, body)
 
 	return &resp, nil
 }
@@ -189,4 +193,96 @@ func (o *ChatOutbound) extractReasoningText(content string) *string {
 
 	// Return original if we couldn't process it
 	return &content
+}
+
+// extractGeminiThinking attempts to find Gemini thinking content in various locations
+func (o *ChatOutbound) extractGeminiThinking(resp *model.InternalLLMResponse, rawBody []byte) {
+	// Some providers might include Gemini thinking in custom fields
+	// Try to find it in various possible locations
+
+	// Check if there's already reasoning content
+	for i := range resp.Choices {
+		if resp.Choices[i].Message != nil {
+			// Skip if we already have reasoning content
+			if resp.Choices[i].Message.ReasoningContent != nil {
+				continue
+			}
+
+			// Check if usage indicates reasoning tokens were used
+			if resp.Usage != nil && resp.Usage.CompletionTokensDetails != nil &&
+				resp.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
+				// We have reasoning tokens but no reasoning content
+				// This suggests the provider didn't map Gemini thinking properly
+				log.Debugf("Gemini response has %d reasoning tokens but no reasoning_content field",
+					resp.Usage.CompletionTokensDetails.ReasoningTokens)
+
+				// Try to find thinking in other fields
+				var flexResp map[string]interface{}
+				if err := json.Unmarshal(rawBody, &flexResp); err == nil {
+					// Look for thinking in various possible locations
+					thinking := o.findThinkingInMap(flexResp)
+					if thinking != "" {
+						log.Debugf("Found Gemini thinking content in alternative location")
+						resp.Choices[i].Message.ReasoningContent = &thinking
+					} else {
+						// Log warning about missing thinking content
+						log.Warnf("Gemini model used %d reasoning tokens but thinking content not found in response. Provider may not properly map Gemini thinking to OpenAI format.",
+							resp.Usage.CompletionTokensDetails.ReasoningTokens)
+					}
+				}
+			}
+		}
+	}
+}
+
+// findThinkingInMap recursively searches for thinking content in response
+func (o *ChatOutbound) findThinkingInMap(data map[string]interface{}) string {
+	// Check common fields where providers might put thinking
+	fields := []string{
+		"thinking", "thought", "thoughts", "reasoning",
+		"thinking_content", "thought_content", "internal_reasoning",
+		"gemini_thinking", "gemini_thoughts",
+	}
+
+	for _, field := range fields {
+		if val, ok := data[field]; ok {
+			if str, ok := val.(string); ok && str != "" {
+				return str
+			}
+			// If it's a map, try to extract text from it
+			if m, ok := val.(map[string]interface{}); ok {
+				if text, ok := m["text"].(string); ok && text != "" {
+					return text
+				}
+				if content, ok := m["content"].(string); ok && content != "" {
+					return content
+				}
+			}
+		}
+	}
+
+	// Check in choices if there are parts with thinking
+	if choices, ok := data["choices"].([]interface{}); ok {
+		for _, choice := range choices {
+			if choiceMap, ok := choice.(map[string]interface{}); ok {
+				// Check for parts array (Gemini-style)
+				if message, ok := choiceMap["message"].(map[string]interface{}); ok {
+					if parts, ok := message["parts"].([]interface{}); ok {
+						for _, part := range parts {
+							if partMap, ok := part.(map[string]interface{}); ok {
+								// Check if this part is marked as thought
+								if thought, ok := partMap["thought"].(bool); ok && thought {
+									if text, ok := partMap["text"].(string); ok && text != "" {
+										return text
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return ""
 }
