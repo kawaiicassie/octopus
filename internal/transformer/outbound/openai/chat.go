@@ -118,10 +118,9 @@ func (o *ChatOutbound) processReasoningContent(resp *model.InternalLLMResponse, 
 			processed := o.extractReasoningText(*resp.Choices[i].Message.ReasoningContent)
 			if processed != nil {
 				resp.Choices[i].Message.ReasoningContent = processed
-			} else {
-				// If processed is nil (empty reasoning), set to nil to remove the field
-				resp.Choices[i].Message.ReasoningContent = nil
 			}
+			// Keep the original content if we couldn't process it
+			// This preserves the field for providers that might send content differently
 		}
 
 		// Check delta reasoning content (for streaming)
@@ -129,16 +128,17 @@ func (o *ChatOutbound) processReasoningContent(resp *model.InternalLLMResponse, 
 			processed := o.extractReasoningText(*resp.Choices[i].Delta.ReasoningContent)
 			if processed != nil {
 				resp.Choices[i].Delta.ReasoningContent = processed
-			} else {
-				// If processed is nil (empty reasoning), set to nil to remove the field
-				resp.Choices[i].Delta.ReasoningContent = nil
 			}
+			// Keep the original content if we couldn't process it
 		}
 	}
 }
 
 // extractReasoningText extracts the actual reasoning text from various formats
 func (o *ChatOutbound) extractReasoningText(content string) *string {
+	// Log the raw content for debugging
+	log.Debugf("Processing reasoning content: %s", content)
+
 	// If it's already a non-empty normal string, return as-is
 	if content != "" && !strings.HasPrefix(content, "{") && !strings.HasPrefix(content, "[") {
 		return &content
