@@ -8,8 +8,8 @@ import (
 
 // Rate limit errors - distinct for RPM vs RPD
 var (
-	ErrRateLimitRPM = errors.New("rate limit exceeded: too many requests per minute")
-	ErrRateLimitRPD = errors.New("rate limit exceeded: too many requests per day")
+	ErrRateLimitRPM = errors.New("Rate limit exceeded: Too Many Requests per Minute")
+	ErrRateLimitRPD = errors.New("Rate limit exceeded: Too Many Requests per Day")
 )
 
 // rateLimitEntry tracks request counts for an API key
