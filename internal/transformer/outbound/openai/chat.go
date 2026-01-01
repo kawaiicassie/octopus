@@ -70,6 +70,10 @@ func (o *ChatOutbound) TransformResponse(ctx context.Context, response *http.Res
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
+
+	// Post-process reasoning content for flexible format handling
+	o.processReasoningContent(&resp, body)
+
 	return &resp, nil
 }
 
@@ -93,5 +97,59 @@ func (o *ChatOutbound) TransformStream(ctx context.Context, eventData []byte) (*
 	if err := json.Unmarshal(eventData, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal stream chunk: %w", err)
 	}
+
+	// Post-process reasoning content for flexible format handling in streaming
+	o.processReasoningContent(&resp, eventData)
+
 	return &resp, nil
+}
+
+// processReasoningContent handles reasoning content that might be in different formats
+// Some providers return reasoning_content as an object {"text": "..."} instead of a string
+func (o *ChatOutbound) processReasoningContent(resp *model.InternalLLMResponse, rawBody []byte) {
+	// Try to parse the raw body to check for reasoning content in object format
+	var flexCheck struct {
+		Choices []struct {
+			Message *struct {
+				ReasoningContent json.RawMessage `json:"reasoning_content"`
+			} `json:"message,omitempty"`
+			Delta *struct {
+				ReasoningContent json.RawMessage `json:"reasoning_content"`
+			} `json:"delta,omitempty"`
+		} `json:"choices"`
+	}
+
+	if err := json.Unmarshal(rawBody, &flexCheck); err == nil {
+		for i, choice := range flexCheck.Choices {
+			if i >= len(resp.Choices) {
+				continue
+			}
+
+			// Check message reasoning content
+			if choice.Message != nil && choice.Message.ReasoningContent != nil {
+				if resp.Choices[i].Message != nil && resp.Choices[i].Message.ReasoningContent == nil {
+					// Try to parse as object with "text" field
+					var obj struct {
+						Text string `json:"text"`
+					}
+					if err := json.Unmarshal(choice.Message.ReasoningContent, &obj); err == nil && obj.Text != "" {
+						resp.Choices[i].Message.ReasoningContent = &obj.Text
+					}
+				}
+			}
+
+			// Check delta reasoning content (for streaming)
+			if choice.Delta != nil && choice.Delta.ReasoningContent != nil {
+				if resp.Choices[i].Delta != nil && resp.Choices[i].Delta.ReasoningContent == nil {
+					// Try to parse as object with "text" field
+					var obj struct {
+						Text string `json:"text"`
+					}
+					if err := json.Unmarshal(choice.Delta.ReasoningContent, &obj); err == nil && obj.Text != "" {
+						resp.Choices[i].Delta.ReasoningContent = &obj.Text
+					}
+				}
+			}
+		}
+	}
 }
