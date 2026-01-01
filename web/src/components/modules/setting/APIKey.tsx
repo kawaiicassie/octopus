@@ -301,7 +301,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
 
             <div className="grid gap-1 text-xs text-muted-foreground">
                 {t('apiKey.form.expireAt')}
-                <div className="flex items-center gap-2 relative">
+                <div className="flex flex-wrap items-center gap-2 relative">
                     <Popover
                         open={expireOpen && !neverExpire}
                         onOpenChange={setExpireOpen}
@@ -337,7 +337,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                         value={expireTime}
                         onChange={(e) => setExpireTime(e.target.value.replace(/[^\d:]/g, '').slice(0, 5))}
                         onBlur={handleTimeBlur}
-                        className="h-9 w-[92px] text-sm rounded-xl"
+                        className="h-9 w-[70px] sm:w-[92px] text-sm rounded-xl text-center"
                         disabled={isPending || neverExpire || !expireDate}
                         inputMode="numeric"
                         placeholder="HH:mm"
@@ -456,7 +456,7 @@ function APIKeyAddOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-5 rounded-3xl border border-border custom-shadow"
+            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -497,7 +497,7 @@ function APIKeyEditOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-5 rounded-3xl border border-border custom-shadow"
+            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -527,7 +527,7 @@ function APIKeyStatsOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-30 flex flex-col bg-card p-5 rounded-3xl border border-border custom-shadow"
+            className="absolute inset-x-0 top-0 z-30 flex flex-col bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <div className="flex items-center justify-between gap-2 mb-3">
@@ -537,7 +537,7 @@ function APIKeyStatsOverlay({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
+                    className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
                 >
                     <X className="h-4 w-4" />
                 </button>
@@ -546,7 +546,7 @@ function APIKeyStatsOverlay({
             {!stats ? (
                 <div className="text-sm text-muted-foreground">{t('apiKey.stats.noData')}</div>
             ) : (
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 text-sm">
                     <div className="rounded-lg bg-muted/40 p-3">
                         <div className="text-xs text-muted-foreground">{t('apiKey.stats.inputToken')}</div>
                         <div className="font-medium tabular-nums">
@@ -659,7 +659,7 @@ function KeyItem({
         >
             <span className="text-sm font-medium truncate">{apiKey.name}</span>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                 <motion.button
                     type="button"
                     layoutId={statsLayoutId}
@@ -786,7 +786,7 @@ export function SettingAPIKey() {
     }, []);
 
     return (
-        <div className="rounded-3xl border border-border bg-card p-6 custom-shadow space-y-5 relative">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 custom-shadow space-y-4 sm:space-y-5 relative overflow-hidden">
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
                     <KeyRound className="h-5 w-5" />
@@ -833,7 +833,7 @@ export function SettingAPIKey() {
                 )}
             </AnimatePresence>
 
-            <div className="space-y-2 h-32 overflow-y-auto">
+            <div className="space-y-2 min-h-[8rem] max-h-48 overflow-y-auto">
                 {apiKeysLoading ? (
                     <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                         <Loader className="h-4 w-4 animate-spin" />
