@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: octopus
+    runtime: go
+    buildCommand: "bash build.sh"
+    startCommand: "./app start"
+    envVars:
+      - key: OCTOPUS_SERVER_HOST
+        value: 0.0.0.0
+      - key: OCTOPUS_SERVER_PORT
+        value: 8080
