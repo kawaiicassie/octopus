@@ -13,8 +13,22 @@ echo "🚀 Building Octopus version: $GIT_VERSION (commit: $COMMIT_ID)"
 # Build frontend
 echo "📦 Building frontend..."
 cd web
-npm ci --production=false  # Dùng ci thay vì install cho production
-NEXT_PUBLIC_APP_VERSION="$GIT_VERSION" npm run build
+
+# Check which package manager to use
+if [ -f "pnpm-lock.yaml" ]; then
+    echo "Using pnpm..."
+    npm install -g pnpm
+    pnpm install --frozen-lockfile
+    NEXT_PUBLIC_APP_VERSION="$GIT_VERSION" pnpm run build
+elif [ -f "package-lock.json" ]; then
+    echo "Using npm ci..."
+    npm ci --production=false
+    NEXT_PUBLIC_APP_VERSION="$GIT_VERSION" npm run build
+else
+    echo "Using npm install..."
+    npm install
+    NEXT_PUBLIC_APP_VERSION="$GIT_VERSION" npm run build
+fi
 cd ..
 
 # Clean and prepare static directory
