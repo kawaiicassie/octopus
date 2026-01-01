@@ -157,7 +157,7 @@ Key environment variables:
 ### API Authentication
 - Admin panel: JWT-based authentication
 - API requests: Bearer token or x-api-key header
-- API key format: `sk-octopus-*`
+- API key format: `moe-xix-*`
 
 ### Channel Configuration
 Base URLs should exclude specific endpoints - the system automatically appends:
