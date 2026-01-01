@@ -456,7 +456,7 @@ function APIKeyAddOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
+            className="bg-muted/50 p-4 sm:p-5 rounded-2xl border border-border"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -497,7 +497,7 @@ function APIKeyEditOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
+            className="bg-muted/50 p-4 sm:p-5 rounded-2xl border border-border"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -527,7 +527,7 @@ function APIKeyStatsOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-30 flex flex-col bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
+            className="flex flex-col bg-muted/50 p-4 sm:p-5 rounded-2xl border border-border"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <div className="flex items-center justify-between gap-2 mb-3">
@@ -786,7 +786,7 @@ export function SettingAPIKey() {
     }, []);
 
     return (
-        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 custom-shadow space-y-4 sm:space-y-5 relative overflow-hidden">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 custom-shadow space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
                     <KeyRound className="h-5 w-5" />
@@ -833,46 +833,48 @@ export function SettingAPIKey() {
                 )}
             </AnimatePresence>
 
-            <div className="space-y-2 min-h-[8rem] max-h-48 overflow-y-auto">
-                {apiKeysLoading ? (
-                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                        <Loader className="h-4 w-4 animate-spin" />
-                    </div>
-                ) : apiKeysError ? (
-                    <div className="h-full flex items-center justify-center text-sm text-destructive">
-                        {t('apiKey.loadFailed')}
-                    </div>
-                ) : apiKeys?.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                        {t('apiKey.empty')}
-                    </div>
-                ) : (
-                    <AnimatePresence>
-                        {sortedApiKeys.map((apiKey) => {
-                            const statsLayoutId = `${statsPrefix}-${apiKey.id}`;
-                            const editLayoutId = `${editPrefix}-${apiKey.id}`;
-                            return (
-                                <KeyItem
-                                    key={apiKey.id}
-                                    apiKey={apiKey}
-                                    statsLayoutId={statsLayoutId}
-                                    editLayoutId={editLayoutId}
-                                    onViewStats={() => {
-                                        closeAllOverlays();
-                                        setViewingStats({ apiKey, layoutId: statsLayoutId });
-                                    }}
-                                    onEdit={() => {
-                                        closeAllOverlays();
-                                        setEditingKey({ apiKey, layoutId: editLayoutId });
-                                    }}
-                                    onDelete={() => handleDelete(apiKey.id)}
-                                    isDeleting={deleteAPIKey.isPending && deletingId === apiKey.id}
-                                />
-                            );
-                        })}
-                    </AnimatePresence>
-                )}
-            </div>
+            {!(isAdding || viewingStats || editingKey) && (
+                <div className="space-y-2">
+                    {apiKeysLoading ? (
+                        <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                            <Loader className="h-4 w-4 animate-spin" />
+                        </div>
+                    ) : apiKeysError ? (
+                        <div className="h-full flex items-center justify-center text-sm text-destructive">
+                            {t('apiKey.loadFailed')}
+                        </div>
+                    ) : apiKeys?.length === 0 ? (
+                        <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                            {t('apiKey.empty')}
+                        </div>
+                    ) : (
+                        <AnimatePresence>
+                            {sortedApiKeys.map((apiKey) => {
+                                const statsLayoutId = `${statsPrefix}-${apiKey.id}`;
+                                const editLayoutId = `${editPrefix}-${apiKey.id}`;
+                                return (
+                                    <KeyItem
+                                        key={apiKey.id}
+                                        apiKey={apiKey}
+                                        statsLayoutId={statsLayoutId}
+                                        editLayoutId={editLayoutId}
+                                        onViewStats={() => {
+                                            closeAllOverlays();
+                                            setViewingStats({ apiKey, layoutId: statsLayoutId });
+                                        }}
+                                        onEdit={() => {
+                                            closeAllOverlays();
+                                            setEditingKey({ apiKey, layoutId: editLayoutId });
+                                        }}
+                                        onDelete={() => handleDelete(apiKey.id)}
+                                        isDeleting={deleteAPIKey.isPending && deletingId === apiKey.id}
+                                    />
+                                );
+                            })}
+                        </AnimatePresence>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
