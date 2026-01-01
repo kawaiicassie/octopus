@@ -41,7 +41,12 @@
         "neverExpire": "Never",
         "daysLeft": "days left",
         "expired": "Expired",
-        "supportedModels": "Supported Models"
+        "supportedModels": "Supported Models",
+        "rateLimits": "Rate Limits",
+        "rpmLimit": "Requests/Minute",
+        "rpdLimit": "Requests/Day",
+        "tokenLimit": "Input Tokens",
+        "unlimited": "Unlimited"
     },
     "navbar": {
         "home": "Home",

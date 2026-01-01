@@ -316,6 +316,41 @@ export function APIKeyDashboard() {
                         </div>
                     </div>
 
+                    {/* Rate Limits */}
+                    {(info.rpm || info.rpd || info.token_limit) && (
+                        <div className="custom-shadow rounded-2xl border bg-card p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Clock className="w-5 h-5 text-chart-5" />
+                                <span className="font-semibold">{t('rateLimits')}</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="rounded-lg bg-muted/50 p-4">
+                                    <div className="text-xs text-muted-foreground mb-1">{t('rpmLimit')}</div>
+                                    <div className="text-xl font-semibold">
+                                        {info.rpm && info.rpm > 0 ? info.rpm.toLocaleString() : t('unlimited')}
+                                    </div>
+                                </div>
+                                <div className="rounded-lg bg-muted/50 p-4">
+                                    <div className="text-xs text-muted-foreground mb-1">{t('rpdLimit')}</div>
+                                    <div className="text-xl font-semibold">
+                                        {info.rpd && info.rpd > 0 ? info.rpd.toLocaleString() : t('unlimited')}
+                                    </div>
+                                    {info.rpd && info.rpd > 0 && (
+                                        <div className="text-[10px] text-muted-foreground mt-1">Resets at UTC 00:00</div>
+                                    )}
+                                </div>
+                                <div className="rounded-lg bg-muted/50 p-4">
+                                    <div className="text-xs text-muted-foreground mb-1">{t('tokenLimit')}</div>
+                                    <div className="text-xl font-semibold">
+                                        {info.token_limit && info.token_limit > 0 ?
+                                            `${(info.token_limit / 1000).toFixed(0)}K` :
+                                            t('unlimited')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Supported Models */}
                     {info.supported_models && info.supported_models.trim().length > 0 && (
                         <div className="custom-shadow rounded-2xl border bg-card p-6">

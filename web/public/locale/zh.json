@@ -41,7 +41,12 @@
         "neverExpire": "永不过期",
         "daysLeft": "天后到期",
         "expired": "已过期",
-        "supportedModels": "支持的模型"
+        "supportedModels": "支持的模型",
+        "rateLimits": "速率限制",
+        "rpmLimit": "请求/分钟",
+        "rpdLimit": "请求/天",
+        "tokenLimit": "输入令牌",
+        "unlimited": "无限制"
     },
     "navbar": {
         "home": "主页",

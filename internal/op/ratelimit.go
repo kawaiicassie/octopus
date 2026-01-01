@@ -104,9 +104,11 @@ func RateLimitIncrement(apiKeyID int) {
 	entry.dayCount++
 }
 
-// getNextDayReset returns the start of the next day (midnight)
+// getNextDayReset returns the start of the next day (midnight UTC)
 func getNextDayReset(now time.Time) time.Time {
-	return time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, now.Location())
+	// Convert to UTC for consistent reset timing
+	utc := now.UTC()
+	return time.Date(utc.Year(), utc.Month(), utc.Day()+1, 0, 0, 0, 0, time.UTC)
 }
 
 // RateLimitCleanup removes entries for deleted API keys
