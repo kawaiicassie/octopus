@@ -59,8 +59,12 @@ func Handler(inboundType inbound.InboundType, c *gin.Context) {
 					}
 					// Note: Image/audio parts also consume tokens but harder to estimate
 					// For now we'll add a fixed estimate for non-text parts
-					if part.Type != "text" {
-						estimatedTokens += 100 // Rough estimate for image/audio metadata
+					if part.Type == "image_url" || part.Type == "image" {
+						estimatedTokens += 750 // Rough estimate for typical image (can be 200-2000+ tokens)
+					} else if part.Type == "audio" || part.Type == "input_audio" {
+						estimatedTokens += 500 // Rough estimate for audio content
+					} else if part.Type != "text" {
+						estimatedTokens += 100 // Default for other unknown types
 					}
 				}
 			}
