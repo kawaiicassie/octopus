@@ -456,7 +456,7 @@ function APIKeyAddOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
+            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -497,7 +497,7 @@ function APIKeyEditOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
+            className="absolute inset-x-0 top-0 z-20 bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <APIKeyForm
@@ -527,7 +527,7 @@ function APIKeyStatsOverlay({
     return (
         <motion.div
             layoutId={layoutId}
-            className="absolute inset-x-0 top-0 z-30 flex flex-col bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow max-h-[80vh] overflow-y-auto"
+            className="absolute inset-x-0 top-0 z-30 flex flex-col bg-card p-4 sm:p-5 rounded-3xl border border-border custom-shadow"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
             <div className="flex items-center justify-between gap-2 mb-3">
