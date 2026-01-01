@@ -67,6 +67,10 @@ func (o *ChatOutbound) TransformResponse(ctx context.Context, response *http.Res
 	if len(body) == 0 {
 		return nil, fmt.Errorf("response body is empty")
 	}
+
+	// Log raw response for debugging reasoning issues
+	log.Debugf("Raw response body: %s", string(body))
+
 	var resp model.InternalLLMResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
@@ -200,34 +204,48 @@ func (o *ChatOutbound) extractGeminiThinking(resp *model.InternalLLMResponse, ra
 	// Some providers might include Gemini thinking in custom fields
 	// Try to find it in various possible locations
 
-	// Check if there's already reasoning content
+	// Check each choice
 	for i := range resp.Choices {
 		if resp.Choices[i].Message != nil {
-			// Skip if we already have reasoning content
-			if resp.Choices[i].Message.ReasoningContent != nil {
-				continue
-			}
-
 			// Check if usage indicates reasoning tokens were used
 			if resp.Usage != nil && resp.Usage.CompletionTokensDetails != nil &&
 				resp.Usage.CompletionTokensDetails.ReasoningTokens > 0 {
-				// We have reasoning tokens but no reasoning content
-				// This suggests the provider didn't map Gemini thinking properly
-				log.Debugf("Gemini response has %d reasoning tokens but no reasoning_content field",
-					resp.Usage.CompletionTokensDetails.ReasoningTokens)
 
-				// Try to find thinking in other fields
-				var flexResp map[string]interface{}
-				if err := json.Unmarshal(rawBody, &flexResp); err == nil {
-					// Look for thinking in various possible locations
-					thinking := o.findThinkingInMap(flexResp)
-					if thinking != "" {
-						log.Debugf("Found Gemini thinking content in alternative location")
-						resp.Choices[i].Message.ReasoningContent = &thinking
-					} else {
-						// Log warning about missing thinking content
-						log.Warnf("Gemini model used %d reasoning tokens but thinking content not found in response. Provider may not properly map Gemini thinking to OpenAI format.",
-							resp.Usage.CompletionTokensDetails.ReasoningTokens)
+				// Check if we have reasoning_content but it's empty JSON
+				if resp.Choices[i].Message.ReasoningContent != nil {
+					content := *resp.Choices[i].Message.ReasoningContent
+					if content == `{"text": ""}` || content == `{"text":""}` {
+						log.Warnf("Gemini model used %d reasoning tokens but reasoning_content only contains empty JSON: %s",
+							resp.Usage.CompletionTokensDetails.ReasoningTokens, content)
+
+						// Try to find thinking in other fields
+						var flexResp map[string]interface{}
+						if err := json.Unmarshal(rawBody, &flexResp); err == nil {
+							// Look for thinking in various possible locations
+							thinking := o.findThinkingInMap(flexResp)
+							if thinking != "" {
+								log.Debugf("Found Gemini thinking content in alternative location")
+								resp.Choices[i].Message.ReasoningContent = &thinking
+							} else {
+								// Check if provider sent reasoning in a separate field
+								log.Errorf("Provider bug: Gemini used %d reasoning tokens but didn't include the actual thinking content. The provider is counting tokens but not sending the content.",
+									resp.Usage.CompletionTokensDetails.ReasoningTokens)
+							}
+						}
+					}
+				} else {
+					// No reasoning_content field at all
+					log.Debugf("Gemini response has %d reasoning tokens but no reasoning_content field",
+						resp.Usage.CompletionTokensDetails.ReasoningTokens)
+
+					// Try to find thinking in other fields
+					var flexResp map[string]interface{}
+					if err := json.Unmarshal(rawBody, &flexResp); err == nil {
+						thinking := o.findThinkingInMap(flexResp)
+						if thinking != "" {
+							log.Debugf("Found Gemini thinking content in alternative location")
+							resp.Choices[i].Message.ReasoningContent = &thinking
+						}
 					}
 				}
 			}
@@ -241,7 +259,9 @@ func (o *ChatOutbound) findThinkingInMap(data map[string]interface{}) string {
 	fields := []string{
 		"thinking", "thought", "thoughts", "reasoning",
 		"thinking_content", "thought_content", "internal_reasoning",
-		"gemini_thinking", "gemini_thoughts",
+		"gemini_thinking", "gemini_thoughts", "model_thinking",
+		"internal_thoughts", "reasoning_text", "thinking_text",
+		"reasoning_process", "thought_process", "internal_monologue",
 	}
 
 	for _, field := range fields {
