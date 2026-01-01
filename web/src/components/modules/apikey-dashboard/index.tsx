@@ -129,14 +129,14 @@ export function APIKeyDashboard() {
     ));
 
     const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
-    const toggleLanguage = () => setLocale(locale === 'zh' ? 'en' : 'zh');
+    const toggleLanguage = () => setLocale(locale === 'en' ? 'en' : 'zh');
 
     return (
         <div className="mx-auto max-w-6xl px-3 md:px-6">
             {/* Header - Consistent with app.tsx */}
             <header className="my-6 flex items-center gap-2 px-2">
                 <Logo size={48} />
-                <h1 className="ml-2 flex-1 truncate text-2xl font-bold tracking-tight">octopus</h1>
+                <h1 className="ml-2 flex-1 truncate text-2xl font-bold tracking-tight">x-x</h1>
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-xl hover:bg-accent">
                         <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

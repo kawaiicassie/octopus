@@ -48,7 +48,7 @@ func APIKeyAuth() gin.HandlerFunc {
 			return
 		}
 
-		if !strings.HasPrefix(apiKey, "sk-"+conf.APP_NAME+"-") {
+		if !strings.HasPrefix(apiKey, "moe-"+conf.APP_NAME+"-") {
 			resp.Error(c, http.StatusUnauthorized, resp.ErrUnauthorized)
 			c.Abort()
 			return

@@ -73,7 +73,7 @@ export function LoginForm({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
       <div className="w-full max-w-sm space-y-8">
         <header className="flex flex-col items-center gap-3">
           <Logo size={48} />
-          <h1 className="text-2xl font-bold">Octopus</h1>
+          <h1 className="text-2xl font-bold">x-x</h1>
         </header>
 
         <Tabs value={mode} onValueChange={handleModeChange}>

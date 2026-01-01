@@ -14,7 +14,7 @@ const messages: Record<Locale, typeof zhMessages> = {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
     const { locale } = useSettingStore();
-    const [currentLocale, setCurrentLocale] = useState<Locale>('zh');
+    const [currentLocale, setCurrentLocale] = useState<Locale>('en');
 
     useEffect(() => {
         setCurrentLocale(locale);
@@ -24,7 +24,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
         <NextIntlClientProvider
             locale={currentLocale}
             messages={messages[currentLocale]}
-            timeZone="Asia/Shanghai"
+            timeZone="Asia/Ho_Chi_Minh"
         >
             {children}
         </NextIntlClientProvider>

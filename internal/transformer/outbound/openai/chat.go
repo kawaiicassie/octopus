@@ -105,51 +105,88 @@ func (o *ChatOutbound) TransformStream(ctx context.Context, eventData []byte) (*
 }
 
 // processReasoningContent handles reasoning content that might be in different formats
-// Some providers return reasoning_content as an object {"text": "..."} instead of a string
+// Some providers return reasoning_content as an object {"text": "..."} or as a JSON string
 func (o *ChatOutbound) processReasoningContent(resp *model.InternalLLMResponse, rawBody []byte) {
-	// Try to parse the raw body to check for reasoning content in object format
-	var flexCheck struct {
-		Choices []struct {
-			Message *struct {
-				ReasoningContent json.RawMessage `json:"reasoning_content"`
-			} `json:"message,omitempty"`
-			Delta *struct {
-				ReasoningContent json.RawMessage `json:"reasoning_content"`
-			} `json:"delta,omitempty"`
-		} `json:"choices"`
-	}
-
-	if err := json.Unmarshal(rawBody, &flexCheck); err == nil {
-		for i, choice := range flexCheck.Choices {
-			if i >= len(resp.Choices) {
-				continue
+	// Process each choice
+	for i := range resp.Choices {
+		// Check message reasoning content
+		if resp.Choices[i].Message != nil && resp.Choices[i].Message.ReasoningContent != nil {
+			processed := o.extractReasoningText(*resp.Choices[i].Message.ReasoningContent)
+			if processed != nil {
+				resp.Choices[i].Message.ReasoningContent = processed
+			} else {
+				// If processed is nil (empty reasoning), set to nil to remove the field
+				resp.Choices[i].Message.ReasoningContent = nil
 			}
+		}
 
-			// Check message reasoning content
-			if choice.Message != nil && choice.Message.ReasoningContent != nil {
-				if resp.Choices[i].Message != nil && resp.Choices[i].Message.ReasoningContent == nil {
-					// Try to parse as object with "text" field
-					var obj struct {
-						Text string `json:"text"`
-					}
-					if err := json.Unmarshal(choice.Message.ReasoningContent, &obj); err == nil && obj.Text != "" {
-						resp.Choices[i].Message.ReasoningContent = &obj.Text
-					}
-				}
-			}
-
-			// Check delta reasoning content (for streaming)
-			if choice.Delta != nil && choice.Delta.ReasoningContent != nil {
-				if resp.Choices[i].Delta != nil && resp.Choices[i].Delta.ReasoningContent == nil {
-					// Try to parse as object with "text" field
-					var obj struct {
-						Text string `json:"text"`
-					}
-					if err := json.Unmarshal(choice.Delta.ReasoningContent, &obj); err == nil && obj.Text != "" {
-						resp.Choices[i].Delta.ReasoningContent = &obj.Text
-					}
-				}
+		// Check delta reasoning content (for streaming)
+		if resp.Choices[i].Delta != nil && resp.Choices[i].Delta.ReasoningContent != nil {
+			processed := o.extractReasoningText(*resp.Choices[i].Delta.ReasoningContent)
+			if processed != nil {
+				resp.Choices[i].Delta.ReasoningContent = processed
+			} else {
+				// If processed is nil (empty reasoning), set to nil to remove the field
+				resp.Choices[i].Delta.ReasoningContent = nil
 			}
 		}
 	}
+}
+
+// extractReasoningText extracts the actual reasoning text from various formats
+func (o *ChatOutbound) extractReasoningText(content string) *string {
+	// If it's already a non-empty normal string, return as-is
+	if content != "" && !strings.HasPrefix(content, "{") && !strings.HasPrefix(content, "[") {
+		return &content
+	}
+
+	// Try to parse as JSON object
+	if strings.HasPrefix(content, "{") {
+		// Try parsing as {"text": "..."}
+		var obj struct {
+			Text string `json:"text"`
+		}
+		if err := json.Unmarshal([]byte(content), &obj); err == nil {
+			if obj.Text != "" {
+				return &obj.Text
+			}
+			// If text is empty, return nil to indicate empty reasoning
+			return nil
+		}
+
+		// Try parsing as {"content": "..."}
+		var objContent struct {
+			Content string `json:"content"`
+		}
+		if err := json.Unmarshal([]byte(content), &objContent); err == nil {
+			if objContent.Content != "" {
+				return &objContent.Content
+			}
+			return nil
+		}
+
+		// Try parsing as {"reasoning": {"text": "..."}}
+		var objNested struct {
+			Reasoning struct {
+				Text    string `json:"text"`
+				Content string `json:"content"`
+			} `json:"reasoning"`
+		}
+		if err := json.Unmarshal([]byte(content), &objNested); err == nil {
+			if objNested.Reasoning.Text != "" {
+				return &objNested.Reasoning.Text
+			}
+			if objNested.Reasoning.Content != "" {
+				return &objNested.Reasoning.Content
+			}
+		}
+	}
+
+	// If it's an empty object or couldn't parse, return nil
+	if content == "{}" || content == "{\"text\":\"\"}" || content == "" {
+		return nil
+	}
+
+	// Return original if we couldn't process it
+	return &content
 }
