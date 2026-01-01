@@ -14,7 +14,7 @@ func GenerateJWTToken(expiresMin int) (string, string, error) {
 	claims := &jwt.RegisteredClaims{
 		IssuedAt:  jwt.NewNumericDate(now),
 		NotBefore: jwt.NewNumericDate(now),
-		Issuer:    "xix",
+		Issuer:    "octopus",
 	}
 	if expiresMin == 0 {
 		claims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Duration(15) * time.Minute))
