@@ -82,6 +82,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
         max_cost: apiKey?.max_cost,
         rpm: apiKey?.rpm,
         rpd: apiKey?.rpd,
+        token_limit: apiKey?.token_limit,
         supported_models: apiKey?.supported_models,
     }));
     const [maxCostInput, setMaxCostInput] = useState(() =>
@@ -92,6 +93,9 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
     );
     const [rpdInput, setRpdInput] = useState(() =>
         apiKey?.rpd != null && apiKey.rpd > 0 ? String(apiKey.rpd) : ''
+    );
+    const [tokenLimitInput, setTokenLimitInput] = useState(() =>
+        apiKey?.token_limit != null && apiKey.token_limit > 0 ? String(apiKey.token_limit) : ''
     );
     const [expireTime, setExpireTime] = useState(() => {
         if (apiKey?.expire_at) {
@@ -182,6 +186,18 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
     const handleClearRpd = useCallback(() => {
         setRpdInput('');
         updateForm({ rpd: undefined });
+    }, [updateForm]);
+
+    const handleTokenLimitChange = useCallback((val: string) => {
+        const cleaned = val.replace(/[^\d]/g, '');
+        setTokenLimitInput(cleaned);
+        const num = parseInt(cleaned, 10);
+        updateForm({ token_limit: Number.isFinite(num) && num > 0 ? num : undefined });
+    }, [updateForm]);
+
+    const handleClearTokenLimit = useCallback(() => {
+        setTokenLimitInput('');
+        updateForm({ token_limit: undefined });
     }, [updateForm]);
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -289,6 +305,37 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                         className={cn(
                             'h-9 px-3 rounded-xl border text-sm transition-colors shrink-0',
                             rpdInput.trim() === ''
+                                ? 'bg-primary text-primary-foreground border-primary/30'
+                                : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
+                            isPending && 'opacity-50 cursor-not-allowed'
+                        )}
+                    >
+                        {t('apiKey.form.unlimited')}
+                    </button>
+                </div>
+            </div>
+
+            {/* Token Limit Field */}
+            <div className="grid gap-1 text-xs text-muted-foreground">
+                {t('apiKey.form.tokenLimit')}
+                <div className="flex items-center gap-2">
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={t('apiKey.form.tokenLimitPlaceholder')}
+                        value={tokenLimitInput}
+                        onChange={(e) => handleTokenLimitChange(e.target.value)}
+                        className="h-9 text-sm rounded-xl flex-1"
+                        disabled={isPending}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleClearTokenLimit}
+                        disabled={isPending}
+                        aria-pressed={tokenLimitInput.trim() === ''}
+                        className={cn(
+                            'h-9 px-3 rounded-xl border text-sm transition-colors shrink-0',
+                            tokenLimitInput.trim() === ''
                                 ? 'bg-primary text-primary-foreground border-primary/30'
                                 : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
                             isPending && 'opacity-50 cursor-not-allowed'

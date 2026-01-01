@@ -37,6 +37,43 @@ func Handler(inboundType inbound.InboundType, c *gin.Context) {
 		}
 	}
 
+	// Check token limit (input tokens only)
+	// Note: This is a simple check. For accurate token counting,
+	// we would need to use a tokenizer specific to each model.
+	// For now, we'll do a rough estimate based on message content length
+	tokenLimit := c.GetInt("token_limit")
+	if tokenLimit > 0 && len(internalRequest.Messages) > 0 {
+		// Estimate input tokens (rough approximation: 1 token ≈ 4 characters)
+		estimatedTokens := 0
+		for _, msg := range internalRequest.Messages {
+			if msg.Content != nil {
+				// Handle string content
+				if strContent, ok := msg.Content.(string); ok {
+					estimatedTokens += len(strContent) / 4
+				}
+				// Handle array content (for multimodal)
+				if arrContent, ok := msg.Content.([]interface{}); ok {
+					for _, part := range arrContent {
+						if partMap, ok := part.(map[string]interface{}); ok {
+							if text, exists := partMap["text"]; exists {
+								if textStr, ok := text.(string); ok {
+									estimatedTokens += len(textStr) / 4
+								}
+							}
+						}
+					}
+				}
+			}
+			// Add tokens for role and name fields
+			estimatedTokens += 10 // Rough estimate for metadata
+		}
+
+		if estimatedTokens > tokenLimit {
+			resp.Error(c, http.StatusBadRequest, fmt.Sprintf("Estimated input tokens (%d) exceed token limit (%d)", estimatedTokens, tokenLimit))
+			return
+		}
+	}
+
 	// 初始化统计和日志
 	apiKeyID := c.GetInt("api_key_id")
 	metrics := NewRelayMetrics(internalRequest.Model)

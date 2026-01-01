@@ -153,6 +153,8 @@
                 "rpmPlaceholder": "Enter limit",
                 "rpd": "RPD (Requests/Day)",
                 "rpdPlaceholder": "Enter limit",
+                "tokenLimit": "Input Token Limit",
+                "tokenLimitPlaceholder": "e.g. 32000 for 32K",
                 "unlimited": "Unlimited",
                 "expireAt": "Expire Date",
                 "selectDate": "Select date",

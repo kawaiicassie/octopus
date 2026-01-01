@@ -153,6 +153,8 @@
                 "rpmPlaceholder": "请输入限制",
                 "rpd": "RPD (请求/天)",
                 "rpdPlaceholder": "请输入限制",
+                "tokenLimit": "输入 Token 限制",
+                "tokenLimitPlaceholder": "例如 32000 表示 32K",
                 "unlimited": "无限制",
                 "expireAt": "过期日期",
                 "selectDate": "选择日期",

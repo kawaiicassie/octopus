@@ -17,6 +17,7 @@ export interface APIKey {
     max_cost?: number; // 不传表示无限制
     rpm?: number;      // Requests Per Minute (0 or empty = unlimited)
     rpd?: number;      // Requests Per Day (0 or empty = unlimited)
+    token_limit?: number; // Max input tokens per request (0 or empty = unlimited)
     supported_models?: string; // 不传表示支持所有模型
 }
 
