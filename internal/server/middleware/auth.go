@@ -74,9 +74,16 @@ func APIKeyAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		// Rate limit check (RPM and RPD)
+		if err := op.RateLimitCheck(apiKeyObj.ID, apiKeyObj.RPM, apiKeyObj.RPD); err != nil {
+			resp.Error(c, http.StatusTooManyRequests, err.Error())
+			c.Abort()
+			return
+		}
 		c.Set("request_type", requestType)
 		c.Set("supported_models", apiKeyObj.SupportedModels)
 		c.Set("api_key_id", apiKeyObj.ID)
+		op.RateLimitIncrement(apiKeyObj.ID)
 		c.Next()
 	}
 }

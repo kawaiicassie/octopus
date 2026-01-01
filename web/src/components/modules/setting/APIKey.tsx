@@ -80,10 +80,18 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
         enabled: apiKey?.enabled ?? true,
         expire_at: apiKey?.expire_at,
         max_cost: apiKey?.max_cost,
+        rpm: apiKey?.rpm,
+        rpd: apiKey?.rpd,
         supported_models: apiKey?.supported_models,
     }));
     const [maxCostInput, setMaxCostInput] = useState(() =>
         apiKey?.max_cost != null ? String(apiKey.max_cost) : ''
+    );
+    const [rpmInput, setRpmInput] = useState(() =>
+        apiKey?.rpm != null && apiKey.rpm > 0 ? String(apiKey.rpm) : ''
+    );
+    const [rpdInput, setRpdInput] = useState(() =>
+        apiKey?.rpd != null && apiKey.rpd > 0 ? String(apiKey.rpd) : ''
     );
     const [expireTime, setExpireTime] = useState(() => {
         if (apiKey?.expire_at) {
@@ -152,6 +160,30 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
         updateForm({ max_cost: undefined });
     }, [updateForm]);
 
+    const handleRpmChange = useCallback((val: string) => {
+        const cleaned = val.replace(/[^\d]/g, '');
+        setRpmInput(cleaned);
+        const num = parseInt(cleaned, 10);
+        updateForm({ rpm: Number.isFinite(num) && num > 0 ? num : undefined });
+    }, [updateForm]);
+
+    const handleClearRpm = useCallback(() => {
+        setRpmInput('');
+        updateForm({ rpm: undefined });
+    }, [updateForm]);
+
+    const handleRpdChange = useCallback((val: string) => {
+        const cleaned = val.replace(/[^\d]/g, '');
+        setRpdInput(cleaned);
+        const num = parseInt(cleaned, 10);
+        updateForm({ rpd: Number.isFinite(num) && num > 0 ? num : undefined });
+    }, [updateForm]);
+
+    const handleClearRpd = useCallback(() => {
+        setRpdInput('');
+        updateForm({ rpd: undefined });
+    }, [updateForm]);
+
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (!form.name.trim()) return;
@@ -195,6 +227,68 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                         className={cn(
                             'h-9 px-3 rounded-xl border text-sm transition-colors shrink-0',
                             isUnlimitedCost
+                                ? 'bg-primary text-primary-foreground border-primary/30'
+                                : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
+                            isPending && 'opacity-50 cursor-not-allowed'
+                        )}
+                    >
+                        {t('apiKey.form.unlimited')}
+                    </button>
+                </div>
+            </div>
+
+            {/* RPM Field */}
+            <div className="grid gap-1 text-xs text-muted-foreground">
+                {t('apiKey.form.rpm')}
+                <div className="flex items-center gap-2">
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={t('apiKey.form.rpmPlaceholder')}
+                        value={rpmInput}
+                        onChange={(e) => handleRpmChange(e.target.value)}
+                        className="h-9 text-sm rounded-xl flex-1"
+                        disabled={isPending}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleClearRpm}
+                        disabled={isPending}
+                        aria-pressed={rpmInput.trim() === ''}
+                        className={cn(
+                            'h-9 px-3 rounded-xl border text-sm transition-colors shrink-0',
+                            rpmInput.trim() === ''
+                                ? 'bg-primary text-primary-foreground border-primary/30'
+                                : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
+                            isPending && 'opacity-50 cursor-not-allowed'
+                        )}
+                    >
+                        {t('apiKey.form.unlimited')}
+                    </button>
+                </div>
+            </div>
+
+            {/* RPD Field */}
+            <div className="grid gap-1 text-xs text-muted-foreground">
+                {t('apiKey.form.rpd')}
+                <div className="flex items-center gap-2">
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={t('apiKey.form.rpdPlaceholder')}
+                        value={rpdInput}
+                        onChange={(e) => handleRpdChange(e.target.value)}
+                        className="h-9 text-sm rounded-xl flex-1"
+                        disabled={isPending}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleClearRpd}
+                        disabled={isPending}
+                        aria-pressed={rpdInput.trim() === ''}
+                        className={cn(
+                            'h-9 px-3 rounded-xl border text-sm transition-colors shrink-0',
+                            rpdInput.trim() === ''
                                 ? 'bg-primary text-primary-foreground border-primary/30'
                                 : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
                             isPending && 'opacity-50 cursor-not-allowed'
