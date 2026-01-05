@@ -253,6 +253,10 @@
                 "change": "修改密码",
                 "success": "密码修改成功",
                 "failed": "密码修改失败"
+            },
+            "logout": {
+                "button": "退出登录",
+                "confirm": "确定要退出登录吗？"
             }
         },
         "info": {

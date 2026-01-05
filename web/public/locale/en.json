@@ -253,6 +253,10 @@
                 "change": "Change Password",
                 "success": "Password changed successfully",
                 "failed": "Failed to change password"
+            },
+            "logout": {
+                "button": "Logout",
+                "confirm": "Are you sure you want to logout?"
             }
         },
         "info": {
