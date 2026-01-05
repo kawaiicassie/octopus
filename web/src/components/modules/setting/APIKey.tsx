@@ -2,13 +2,20 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { KeyRound, Plus, Loader, Copy, Trash2, Check, X, Info, CalendarDays, Pencil } from 'lucide-react';
+import { KeyRound, Plus, Loader, Trash2, Check, X, Info, CalendarDays, Pencil, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import {
+    MorphingDialog,
+    MorphingDialogContainer,
+    MorphingDialogContent,
+    MorphingDialogTrigger,
+    useMorphingDialog,
+} from '@/components/ui/morphing-dialog';
 import {
     useAPIKeyList,
     useCreateAPIKey,
@@ -20,6 +27,7 @@ import { useGroupList } from '@/api/endpoints/group';
 import { useStatsAPIKey } from '@/api/endpoints/stats';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/common/Toast';
+import { CopyIconButton } from '@/components/common/CopyButton';
 import type { ApiError } from '@/api/types';
 
 function toExpireAt(date: Date, time: string): number {
@@ -360,7 +368,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                                 className="h-9 flex-1 flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/20 px-3 text-sm text-foreground transition-colors hover:bg-muted/30 disabled:opacity-50"
                             >
                                 <span className="truncate">{expireLabel}</span>
-                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                <CalendarDays className="size-4 text-muted-foreground" />
                             </button>
                         </PopoverTrigger>
                         <PopoverContent
@@ -396,7 +404,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                         disabled={isPending}
                         aria-pressed={neverExpire}
                         className={cn(
-                            'h-9 px-3 rounded-xl border text-sm transition-colors',
+                            'h-9 px-3 rounded-xl border text-sm transition-colors whitespace-nowrap shrink-0',
                             neverExpire
                                 ? 'bg-primary text-primary-foreground border-primary/30'
                                 : 'border-border bg-muted/20 text-foreground hover:bg-muted/30',
@@ -461,7 +469,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                     disabled={isPending}
                     className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-xl bg-muted text-muted-foreground text-sm font-medium transition-all hover:bg-muted/80 active:scale-[0.98] disabled:opacity-50"
                 >
-                    <X className="h-4 w-4" />
+                    <X className="size-4" />
                     {t('apiKey.form.cancel')}
                 </button>
                 <button
@@ -469,7 +477,7 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
                     disabled={isPending || !form.name.trim()}
                     className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
                 >
-                    {isPending ? <Loader className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {isPending ? <Loader className="size-4 animate-spin" /> : <Check className="size-4" />}
                     {submitLabel}
                 </button>
             </div>
@@ -477,70 +485,21 @@ function APIKeyForm({ apiKey, isPending, submitLabel, onSubmit, onClose }: APIKe
     );
 }
 
-function APIKeyAddOverlay({
-    layoutId,
-    onClose,
-}: {
-    layoutId: string;
-    onClose: () => void;
-}) {
-    const t = useTranslations('setting');
-    const createAPIKey = useCreateAPIKey();
-
-    const handleSubmit = useCallback((data: Omit<APIKey, 'id' | 'api_key'>) => {
-        createAPIKey.mutate(data, {
-            onSuccess: () => {
-                toast.success(t('apiKey.toast.createSuccess'));
-                onClose();
-            },
-            onError: (error) => {
-                const msg = (error as unknown as ApiError)?.message;
-                toast.error(t('apiKey.toast.createError'), { description: msg });
-            },
-        });
-    }, [createAPIKey, onClose, t]);
-
-    return (
-        <motion.div
-            layoutId={layoutId}
-            className="bg-muted/50 p-4 sm:p-5 rounded-2xl border border-border"
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        >
-            <APIKeyForm
-                isPending={createAPIKey.isPending}
-                submitLabel={t('apiKey.form.create')}
-                onSubmit={handleSubmit}
-                onClose={onClose}
-            />
-        </motion.div>
-    );
-}
-
-function APIKeyEditOverlay({
+function APIKeyFormOverlay({
     layoutId,
     apiKey,
+    isPending,
+    submitLabel,
+    onSubmit,
     onClose,
 }: {
     layoutId: string;
-    apiKey: APIKey;
+    apiKey?: APIKey;
+    isPending: boolean;
+    submitLabel: string;
+    onSubmit: (data: Omit<APIKey, 'id' | 'api_key'>) => void;
     onClose: () => void;
 }) {
-    const t = useTranslations('setting');
-    const updateAPIKey = useUpdateAPIKey();
-
-    const handleSubmit = useCallback((data: Omit<APIKey, 'id' | 'api_key'>) => {
-        updateAPIKey.mutate({ id: apiKey.id, ...data }, {
-            onSuccess: () => {
-                toast.success(t('apiKey.toast.updateSuccess'));
-                onClose();
-            },
-            onError: (error) => {
-                const msg = (error as unknown as ApiError)?.message;
-                toast.error(t('apiKey.toast.updateError'), { description: msg });
-            },
-        });
-    }, [updateAPIKey, apiKey.id, onClose, t]);
-
     return (
         <motion.div
             layoutId={layoutId}
@@ -549,16 +508,16 @@ function APIKeyEditOverlay({
         >
             <APIKeyForm
                 apiKey={apiKey}
-                isPending={updateAPIKey.isPending}
-                submitLabel={t('apiKey.form.save')}
-                onSubmit={handleSubmit}
+                isPending={isPending}
+                submitLabel={submitLabel}
+                onSubmit={onSubmit}
                 onClose={onClose}
             />
         </motion.div>
     );
 }
 
-function APIKeyStatsOverlay({
+function APIKeyStatsCard({
     layoutId,
     apiKey,
     onClose,
@@ -586,7 +545,7 @@ function APIKeyStatsOverlay({
                     onClick={onClose}
                     className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
                 >
-                    <X className="h-4 w-4" />
+                    <X className="size-4" />
                 </button>
             </div>
 
@@ -642,10 +601,11 @@ function APIKeyStatsOverlay({
     );
 }
 
-function KeyItem({
+function APIKeyKeyItem({
     apiKey,
     statsLayoutId,
     editLayoutId,
+    deleteLayoutId,
     onViewStats,
     onEdit,
     onDelete,
@@ -654,46 +614,14 @@ function KeyItem({
     apiKey: APIKey;
     statsLayoutId: string;
     editLayoutId: string;
+    deleteLayoutId: string;
     onViewStats: () => void;
     onEdit: () => void;
     onDelete: () => void;
     isDeleting: boolean;
 }) {
     const t = useTranslations('setting');
-    const [copied, setCopied] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
-    const copyTimerRef = useRef<number | null>(null);
-
-    useEffect(() => {
-        return () => {
-            if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-        };
-    }, []);
-
-    const handleCopy = useCallback(async () => {
-        try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(apiKey.api_key);
-            } else {
-                const textArea = document.createElement('textarea');
-                textArea.value = apiKey.api_key;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
-            setCopied(true);
-            toast.success(t('apiKey.toast.copySuccess'));
-            if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-            copyTimerRef.current = window.setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy:', err);
-            const msg = err instanceof Error ? err.message : String(err);
-            toast.error(t('apiKey.toast.copyError'), { description: msg });
-        }
-    }, [apiKey.api_key, t]);
 
     return (
         <motion.div
@@ -711,54 +639,34 @@ function KeyItem({
                     type="button"
                     layoutId={statsLayoutId}
                     onClick={onViewStats}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                    className="flex size-8 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
                     title="Stats"
                 >
-                    <Info className="h-4 w-4" />
+                    <Info className="size-4" />
                 </motion.button>
                 <motion.button
                     type="button"
                     layoutId={editLayoutId}
                     onClick={onEdit}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                    className="flex size-8 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
                     title="Edit"
                 >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="size-4" />
                 </motion.button>
-                <button
-                    onClick={handleCopy}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
-                >
-                    <AnimatePresence mode="wait">
-                        {copied ? (
-                            <motion.div
-                                key="check"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0 }}
-                            >
-                                <Check className="h-4 w-4" />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="copy"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0 }}
-                            >
-                                <Copy className="h-4 w-4" />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </button>
+                <CopyIconButton
+                    text={apiKey.api_key}
+                    className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
+                    copyIconClassName="size-4"
+                    checkIconClassName="size-4"
+                />
 
                 {!confirmDelete && (
                     <motion.button
-                        layoutId={`delete-btn-${apiKey.id}`}
+                        layoutId={deleteLayoutId}
                         onClick={() => setConfirmDelete(true)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                        className="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
                     >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="size-4" />
                     </motion.button>
                 )}
             </div>
@@ -766,22 +674,22 @@ function KeyItem({
             <AnimatePresence>
                 {confirmDelete && (
                     <motion.div
-                        layoutId={`delete-btn-${apiKey.id}`}
+                        layoutId={deleteLayoutId}
                         className="absolute inset-0 flex items-center justify-center gap-2 bg-destructive p-3 rounded-xl"
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     >
                         <button
                             onClick={() => setConfirmDelete(false)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive-foreground/20 text-destructive-foreground transition-all hover:bg-destructive-foreground/30 active:scale-95"
+                            className="flex size-8 items-center justify-center rounded-lg bg-destructive-foreground/20 text-destructive-foreground transition-all hover:bg-destructive-foreground/30 active:scale-95"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="size-4" />
                         </button>
                         <button
                             onClick={onDelete}
                             disabled={isDeleting}
                             className="flex-1 h-8 flex items-center justify-center gap-1.5 rounded-lg bg-destructive-foreground text-destructive text-sm font-medium transition-all hover:bg-destructive-foreground/90 active:scale-[0.98] disabled:opacity-50"
                         >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="size-3.5" />
                             {isDeleting ? '...' : t('apiKey.form.confirm')}
                         </button>
                     </motion.div>
@@ -791,16 +699,31 @@ function KeyItem({
     );
 }
 
-export function SettingAPIKey() {
+function APIKeyPanelBase({
+    idPrefix,
+    containerClassName,
+    listClassName,
+    renderHeaderExtra,
+}: {
+    idPrefix: string;
+    containerClassName: string;
+    listClassName: string;
+    renderHeaderExtra?: (ctx: {
+        disabled: boolean;
+        onCloseAllOverlays: () => void;
+    }) => React.ReactNode;
+}) {
     const t = useTranslations('setting');
     const { data: apiKeys, isLoading: apiKeysLoading, error: apiKeysError } = useAPIKeyList();
     const createAPIKey = useCreateAPIKey();
+    const updateAPIKey = useUpdateAPIKey();
     const deleteAPIKey = useDeleteAPIKey();
 
     const instanceId = useId();
-    const addLayoutId = `add-btn-apikey-${instanceId}`;
-    const statsPrefix = `apikey-stats-${instanceId}`;
-    const editPrefix = `apikey-edit-${instanceId}`;
+    const addLayoutId = `add-btn-${idPrefix}-${instanceId}`;
+    const statsPrefix = `${idPrefix}-stats-${instanceId}`;
+    const editPrefix = `${idPrefix}-edit-${instanceId}`;
+    const deletePrefix = `${idPrefix}-delete-`;
 
     const [isAdding, setIsAdding] = useState(false);
     const [viewingStats, setViewingStats] = useState<{ apiKey: APIKey; layoutId: string } | null>(null);
@@ -832,29 +755,63 @@ export function SettingAPIKey() {
         setEditingKey(null);
     }, []);
 
+    const disabledHeaderActions = createAPIKey.isPending || isAdding || !!viewingStats || !!editingKey;
+
+    const handleCreate = useCallback((data: Omit<APIKey, 'id' | 'api_key'>) => {
+        createAPIKey.mutate(data, {
+            onSuccess: () => {
+                toast.success(t('apiKey.toast.createSuccess'));
+                setIsAdding(false);
+            },
+            onError: (error) => {
+                const msg = (error as unknown as ApiError)?.message;
+                toast.error(t('apiKey.toast.createError'), { description: msg });
+            },
+        });
+    }, [createAPIKey, t]);
+
+    const handleUpdate = useCallback((apiKey: APIKey, data: Omit<APIKey, 'id' | 'api_key'>) => {
+        updateAPIKey.mutate({ id: apiKey.id, ...data }, {
+            onSuccess: () => {
+                toast.success(t('apiKey.toast.updateSuccess'));
+                setEditingKey(null);
+            },
+            onError: (error) => {
+                const msg = (error as unknown as ApiError)?.message;
+                toast.error(t('apiKey.toast.updateError'), { description: msg });
+            },
+        });
+    }, [t, updateAPIKey]);
+
     return (
-        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 custom-shadow space-y-4 sm:space-y-5">
+        <div className={containerClassName}>
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
                     <KeyRound className="h-5 w-5" />
                     {t('apiKey.title')}
                 </h2>
-                <motion.button
-                    layoutId={addLayoutId}
-                    type="button"
-                    onClick={() => setIsAdding(true)}
-                    disabled={createAPIKey.isPending || isAdding || !!viewingStats || !!editingKey}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-                    title={t('apiKey.add') ?? '添加'}
-                >
-                    <Plus className="h-4 w-4" />
-                </motion.button>
+                <div className="flex items-center gap-2">
+                    <motion.button
+                        layoutId={addLayoutId}
+                        type="button"
+                        onClick={() => setIsAdding(true)}
+                        disabled={disabledHeaderActions}
+                        className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                        title={t('apiKey.add')}
+                    >
+                        <Plus className="size-4" />
+                    </motion.button>
+                    {renderHeaderExtra?.({ disabled: disabledHeaderActions, onCloseAllOverlays: closeAllOverlays })}
+                </div>
             </div>
 
             <AnimatePresence>
                 {isAdding && (
-                    <APIKeyAddOverlay
+                    <APIKeyFormOverlay
                         layoutId={addLayoutId}
+                        isPending={createAPIKey.isPending}
+                        submitLabel={t('apiKey.form.create')}
+                        onSubmit={handleCreate}
                         onClose={() => setIsAdding(false)}
                     />
                 )}
@@ -862,7 +819,7 @@ export function SettingAPIKey() {
 
             <AnimatePresence>
                 {viewingStats && (
-                    <APIKeyStatsOverlay
+                    <APIKeyStatsCard
                         layoutId={viewingStats.layoutId}
                         apiKey={viewingStats.apiKey}
                         onClose={() => setViewingStats(null)}
@@ -872,56 +829,102 @@ export function SettingAPIKey() {
 
             <AnimatePresence>
                 {editingKey && (
-                    <APIKeyEditOverlay
+                    <APIKeyFormOverlay
                         layoutId={editingKey.layoutId}
                         apiKey={editingKey.apiKey}
+                        isPending={updateAPIKey.isPending}
+                        submitLabel={t('apiKey.form.save')}
+                        onSubmit={(data) => handleUpdate(editingKey.apiKey, data)}
                         onClose={() => setEditingKey(null)}
                     />
                 )}
             </AnimatePresence>
 
-            {!(isAdding || viewingStats || editingKey) && (
-                <div className="space-y-2">
-                    {apiKeysLoading ? (
-                        <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                            <Loader className="h-4 w-4 animate-spin" />
-                        </div>
-                    ) : apiKeysError ? (
-                        <div className="h-full flex items-center justify-center text-sm text-destructive">
-                            {t('apiKey.loadFailed')}
-                        </div>
-                    ) : apiKeys?.length === 0 ? (
-                        <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                            {t('apiKey.empty')}
-                        </div>
-                    ) : (
-                        <AnimatePresence>
-                            {sortedApiKeys.map((apiKey) => {
-                                const statsLayoutId = `${statsPrefix}-${apiKey.id}`;
-                                const editLayoutId = `${editPrefix}-${apiKey.id}`;
-                                return (
-                                    <KeyItem
-                                        key={apiKey.id}
-                                        apiKey={apiKey}
-                                        statsLayoutId={statsLayoutId}
-                                        editLayoutId={editLayoutId}
-                                        onViewStats={() => {
-                                            closeAllOverlays();
-                                            setViewingStats({ apiKey, layoutId: statsLayoutId });
-                                        }}
-                                        onEdit={() => {
-                                            closeAllOverlays();
-                                            setEditingKey({ apiKey, layoutId: editLayoutId });
-                                        }}
-                                        onDelete={() => handleDelete(apiKey.id)}
-                                        isDeleting={deleteAPIKey.isPending && deletingId === apiKey.id}
-                                    />
-                                );
-                            })}
-                        </AnimatePresence>
-                    )}
-                </div>
-            )}
+            <div className={listClassName}>
+                {apiKeysLoading ? (
+                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                        <Loader className="size-4 animate-spin" />
+                    </div>
+                ) : apiKeysError ? (
+                    <div className="h-full flex items-center justify-center text-sm text-destructive">
+                        {t('apiKey.loadFailed')}
+                    </div>
+                ) : apiKeys?.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                        {t('apiKey.empty')}
+                    </div>
+                ) : (
+                    <AnimatePresence>
+                        {sortedApiKeys.map((apiKey) => {
+                            const statsLayoutId = `${statsPrefix}-${apiKey.id}`;
+                            const editLayoutId = `${editPrefix}-${apiKey.id}`;
+                            const deleteLayoutId = `${deletePrefix}${apiKey.id}`;
+                            return (
+                                <APIKeyKeyItem
+                                    key={apiKey.id}
+                                    apiKey={apiKey}
+                                    statsLayoutId={statsLayoutId}
+                                    editLayoutId={editLayoutId}
+                                    deleteLayoutId={deleteLayoutId}
+                                    onViewStats={() => {
+                                        closeAllOverlays();
+                                        setViewingStats({ apiKey, layoutId: statsLayoutId });
+                                    }}
+                                    onEdit={() => {
+                                        closeAllOverlays();
+                                        setEditingKey({ apiKey, layoutId: editLayoutId });
+                                    }}
+                                    onDelete={() => handleDelete(apiKey.id)}
+                                    isDeleting={deleteAPIKey.isPending && deletingId === apiKey.id}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
+                )}
+            </div>
         </div>
+    );
+}
+
+function APIKeyDialogPanel() {
+    const { setIsOpen } = useMorphingDialog();
+    return (
+        <APIKeyPanelBase
+            idPrefix="apikey-dialog"
+            containerClassName="rounded-3xl border border-border bg-card p-6 space-y-5 relative w-screen max-w-full md:max-w-xl"
+            listClassName="space-y-2 max-h-[70vh] overflow-y-auto"
+            renderHeaderExtra={() => (
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted"
+                    title="Close"
+                >
+                    <X className="size-4" />
+                </button>
+            )}
+        />
+    );
+}
+
+export function SettingAPIKey() {
+    return (
+        <APIKeyPanelBase
+            idPrefix="apikey"
+            containerClassName="rounded-3xl border border-border bg-card p-6 custom-shadow space-y-5 relative"
+            listClassName="space-y-2 h-32 overflow-y-auto"
+            renderHeaderExtra={() => (
+                <MorphingDialog>
+                    <MorphingDialogTrigger className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-colors hover:bg-muted">
+                        <Maximize2 className="size-4" />
+                    </MorphingDialogTrigger>
+                    <MorphingDialogContainer>
+                        <MorphingDialogContent className="relative">
+                            <APIKeyDialogPanel />
+                        </MorphingDialogContent>
+                    </MorphingDialogContainer>
+                </MorphingDialog>
+            )}
+        />
     );
 }

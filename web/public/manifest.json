@@ -2,9 +2,9 @@
   "name": "XIX",
   "short_name": "x-x",
   "description": "A Moe API Gateway",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "lang": "en-US",
   "dir": "ltr",
   "display": "standalone",
@@ -18,19 +18,19 @@
   ],
   "icons": [
     {
-      "src": "/web-app-manifest-192x192.png",
+      "src": "./web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "./web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "./web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -38,28 +38,28 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshot/desktop-home.png",
+      "src": "./screenshot/desktop-home.png",
       "sizes": "1437x918",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Dashboard"
     },
     {
-      "src": "/screenshot/desktop-channel.png",
+      "src": "./screenshot/desktop-channel.png",
       "sizes": "1437x918",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Channel Management"
     },
     {
-      "src": "/screenshot/mobile-home.png",
+      "src": "./screenshot/mobile-home.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Mobile Dashboard"
     },
     {
-      "src": "/screenshot/mobile-channel.png",
+      "src": "./screenshot/mobile-channel.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
@@ -70,10 +70,10 @@
     {
       "name": "Channel Management",
       "short_name": "Channel",
-      "url": "/channel",
+      "url": "./channel",
       "icons": [
         {
-          "src": "/web-app-manifest-192x192.png",
+          "src": "./web-app-manifest-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -82,10 +82,10 @@
     {
       "name": "Model Management",
       "short_name": "Model",
-      "url": "/model",
+      "url": "./model",
       "icons": [
         {
-          "src": "/web-app-manifest-192x192.png",
+          "src": "./web-app-manifest-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -94,10 +94,10 @@
     {
       "name": "Group Management",
       "short_name": "Group",
-      "url": "/group",
+      "url": "./group",
       "icons": [
         {
-          "src": "/web-app-manifest-192x192.png",
+          "src": "./web-app-manifest-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
