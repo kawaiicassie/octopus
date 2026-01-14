@@ -46,7 +46,19 @@
         "rpmLimit": "Requests/Minute",
         "rpdLimit": "Requests/Day",
         "tokenLimit": "Input Tokens",
-        "unlimited": "Unlimited"
+        "unlimited": "Unlimited",
+        "usageLogs": {
+            "title": "Usage Logs",
+            "date": "Date",
+            "model": "Model",
+            "inputTokens": "Input",
+            "outputTokens": "Output",
+            "totalTokens": "Total",
+            "cost": "Cost",
+            "noLogs": "No usage logs yet",
+            "loadMore": "Load More",
+            "noMore": "No more logs"
+        }
     },
     "navbar": {
         "home": "Home",
@@ -281,6 +293,10 @@
             "title": "Log Settings",
             "enabled": {
                 "label": "Enable History Logs"
+            },
+            "saveContent": {
+                "label": "Save Request/Response Content",
+                "hint": "Disable to protect user privacy"
             },
             "keepPeriod": {
                 "label": "Log Retention (days)",

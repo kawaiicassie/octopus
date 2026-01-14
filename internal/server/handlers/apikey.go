@@ -44,6 +44,10 @@ func init() {
 		AddRoute(
 			router.NewRoute("/login", http.MethodGet).
 				Handle(loginAPIKey),
+		).
+		AddRoute(
+			router.NewRoute("/logs", http.MethodGet).
+				Handle(listAPIKeyLogs),
 		)
 }
 
@@ -131,4 +135,50 @@ func getStatsAPIKeyById(c *gin.Context) {
 
 func loginAPIKey(c *gin.Context) {
 	resp.Success(c, nil)
+}
+
+// listAPIKeyLogs returns logs for the authenticated API key
+func listAPIKeyLogs(c *gin.Context) {
+	apiKeyID := c.GetInt("api_key_id")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	logs, err := op.RelayLogListByAPIKey(c.Request.Context(), apiKeyID, page, pageSize)
+	if err != nil {
+		resp.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Return simplified log entries for API key users (no request/response content)
+	type SimpleLog struct {
+		ID           int64   `json:"id"`
+		Time         int64   `json:"time"`
+		ModelName    string  `json:"model_name"`
+		InputTokens  int     `json:"input_tokens"`
+		OutputTokens int     `json:"output_tokens"`
+		TotalTokens  int     `json:"total_tokens"`
+		Cost         float64 `json:"cost"`
+	}
+
+	simpleLogs := make([]SimpleLog, len(logs))
+	for i, log := range logs {
+		simpleLogs[i] = SimpleLog{
+			ID:           log.ID,
+			Time:         log.Time,
+			ModelName:    log.RequestModelName,
+			InputTokens:  log.InputTokens,
+			OutputTokens: log.OutputTokens,
+			TotalTokens:  log.InputTokens + log.OutputTokens,
+			Cost:         log.Cost,
+		}
+	}
+
+	resp.Success(c, simpleLogs)
 }

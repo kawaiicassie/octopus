@@ -1,10 +1,11 @@
 # Build frontend
 FROM node:18-alpine AS frontend-builder
+RUN npm install -g pnpm
 WORKDIR /app/web
-COPY web/package*.json ./
-RUN npm ci
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY web/ ./
-RUN npm run build
+RUN pnpm run build
 
 # Build backend
 FROM golang:1.25-alpine AS backend-builder

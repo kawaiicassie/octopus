@@ -133,6 +133,7 @@ func (m *RelayMetrics) saveStats(success bool, duration time.Duration) {
 func (m *RelayMetrics) saveLog(ctx context.Context, err error, duration time.Duration) {
 	relayLog := model.RelayLog{
 		Time:             m.StartTime.Unix(),
+		APIKeyID:         m.APIKeyID,
 		RequestModelName: m.RequestModel,
 		ChannelName:      m.ChannelName,
 		ChannelId:        m.ChannelID,
@@ -152,15 +153,18 @@ func (m *RelayMetrics) saveLog(ctx context.Context, err error, duration time.Dur
 		relayLog.Cost = m.Stats.InputCost + m.Stats.OutputCost
 	}
 
+	// 检查是否保存请求/响应内容（隐私保护设置）
+	saveContent, _ := op.SettingGetBool(model.SettingKeyRelayLogSaveContent)
+
 	// 设置请求内容
-	if m.InternalRequest != nil {
+	if saveContent && m.InternalRequest != nil {
 		if reqJSON, jsonErr := json.Marshal(m.InternalRequest); jsonErr == nil {
 			relayLog.RequestContent = string(reqJSON)
 		}
 	}
 
 	// 设置响应内容
-	if m.InternalResponse != nil {
+	if saveContent && m.InternalResponse != nil {
 		if respJSON, jsonErr := json.Marshal(m.InternalResponse); jsonErr == nil {
 			// 如果是 Anthropic 响应，补充 cache_creation_input_tokens 字段
 			if m.InternalResponse.Usage != nil && m.InternalResponse.Usage.AnthropicUsage {

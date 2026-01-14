@@ -1,0 +1,16 @@
+services:
+  octopus:
+    # Sử dụng image custom thay vì bestrui/octopus
+    image: octopus-custom:latest
+    env_file:
+       - .env
+    ports:
+       - '8080:8080'
+    volumes:
+       - '/data:/app/data'
+    container_name: octopus
+    restart: unless-stopped
+    environment:
+      # Cài đặt mặc định cho phiên bản custom
+      OCTOPUS_DEFAULT_LANGUAGE: "en"
+      # Thêm các biến môi trường khác nếu cần

@@ -253,6 +253,67 @@ func RelayLogList(ctx context.Context, startTime, endTime *int, page, pageSize i
 	return result, nil
 }
 
+// RelayLogListByAPIKey 查询指定 API Key 的日志列表
+func RelayLogListByAPIKey(ctx context.Context, apiKeyID int, page, pageSize int) ([]model.RelayLog, error) {
+	enabled, err := SettingGetBool(model.SettingKeyRelayLogKeepEnabled)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取缓存中符合条件的日志
+	relayLogCacheLock.Lock()
+	var cachedLogs []model.RelayLog
+	for _, log := range relayLogCache {
+		if log.APIKeyID == apiKeyID {
+			cachedLogs = append(cachedLogs, log)
+		}
+	}
+	relayLogCacheLock.Unlock()
+
+	// 反转缓存日志顺序（原本新的在末尾，反转后新的在前面，方便分页）
+	for i, j := 0, len(cachedLogs)-1; i < j; i, j = i+1, j-1 {
+		cachedLogs[i], cachedLogs[j] = cachedLogs[j], cachedLogs[i]
+	}
+
+	cacheCount := len(cachedLogs)
+	offset := (page - 1) * pageSize
+
+	var result []model.RelayLog
+
+	// 先从缓存中取（缓存是最新的日志）
+	if offset < cacheCount {
+		cacheEnd := offset + pageSize
+		if cacheEnd > cacheCount {
+			cacheEnd = cacheCount
+		}
+		result = append(result, cachedLogs[offset:cacheEnd]...)
+	}
+
+	// 如果启用了日志保存，缓存不够时从数据库补充
+	if enabled {
+		remaining := pageSize - len(result)
+		if remaining > 0 {
+			dbOffset := 0
+			if offset > cacheCount {
+				dbOffset = offset - cacheCount
+			}
+
+			var dbLogs []model.RelayLog
+			if err := db.GetDB().WithContext(ctx).
+				Where("api_key_id = ?", apiKeyID).
+				Order("id DESC").
+				Offset(dbOffset).
+				Limit(remaining).
+				Find(&dbLogs).Error; err != nil {
+				return nil, err
+			}
+			result = append(result, dbLogs...)
+		}
+	}
+
+	return result, nil
+}
+
 func RelayLogClear(ctx context.Context) error {
 	relayLogCacheLock.Lock()
 	relayLogCache = make([]model.RelayLog, 0, relayLogMaxSize)

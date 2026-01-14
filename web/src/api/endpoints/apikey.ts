@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import { logger } from '@/lib/logger';
 import { useAuthStore } from './user';
@@ -225,5 +225,45 @@ export function useAPIKeyStats() {
         }),
         refetchInterval: 30000,
         refetchOnMount: 'always',
+    });
+}
+
+/**
+ * Simplified log entry for API key users
+ */
+export interface SimpleLog {
+    id: number;
+    time: number;
+    model_name: string;
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    cost: number;
+}
+
+/**
+ * 获取当前 API Key 的使用日志 Hook
+ */
+export function useAPIKeyLogs(options: { pageSize?: number } = {}) {
+    const { pageSize = 20 } = options;
+    const { isAPIKeyAuth, isAuthenticated } = useAuthStore();
+
+    return useInfiniteQuery({
+        queryKey: ['apikey', 'logs', pageSize],
+        initialPageParam: 1,
+        queryFn: async ({ pageParam }) => {
+            const params = new URLSearchParams();
+            params.set('page', String(pageParam));
+            params.set('page_size', String(pageSize));
+            const result = await apiClient.get<SimpleLog[] | null>(`/api/v1/apikey/logs?${params.toString()}`);
+            return result ?? [];
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            if (!lastPage || lastPage.length < pageSize) return undefined;
+            return allPages.length + 1;
+        },
+        enabled: isAPIKeyAuth && isAuthenticated,
+        refetchInterval: 30000,
+        staleTime: 10000,
     });
 }

@@ -8,6 +8,7 @@ import { useAuthStore } from '@/api/endpoints/user';
 import { useSettingStore } from '@/stores/setting';
 import { AnimatedNumber } from '@/components/common/AnimatedNumber';
 import Logo from '@/components/modules/logo';
+import { UsageLogs } from '@/components/modules/apikey-dashboard/UsageLogs';
 import { PageWrapper } from '@/components/common/PageWrapper';
 import { CopyIconButton } from '@/components/common/CopyButton';
 import { useCopyToClipboard } from '@uidotdev/usehooks';
@@ -315,6 +316,9 @@ export function APIKeyDashboard() {
                             </div>
                         </div>
                     )}
+
+                    {/* Usage Logs */}
+                    <UsageLogs />
                 </PageWrapper>
             </main>
         </div>

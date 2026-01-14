@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { ScrollText, Calendar, Trash2 } from 'lucide-react';
+import { ScrollText, Calendar, Trash2, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -17,20 +17,28 @@ export function SettingLog() {
     const clearLogs = useClearLogs();
 
     const [enabled, setEnabled] = useState(true);
+    const [saveContent, setSaveContent] = useState(true);
     const [keepPeriod, setKeepPeriod] = useState('7');
     const [isClearing, setIsClearing] = useState(false);
 
     const initialEnabled = useRef(true);
+    const initialSaveContent = useRef(true);
     const initialKeepPeriod = useRef('7');
 
     useEffect(() => {
         if (settings) {
             const enabledSetting = settings.find(s => s.key === SettingKey.RelayLogKeepEnabled);
+            const saveContentSetting = settings.find(s => s.key === SettingKey.RelayLogSaveContent);
             const periodSetting = settings.find(s => s.key === SettingKey.RelayLogKeepPeriod);
             if (enabledSetting) {
                 const isEnabled = enabledSetting.value === 'true';
                 queueMicrotask(() => setEnabled(isEnabled));
                 initialEnabled.current = isEnabled;
+            }
+            if (saveContentSetting) {
+                const isSaveContent = saveContentSetting.value === 'true';
+                queueMicrotask(() => setSaveContent(isSaveContent));
+                initialSaveContent.current = isSaveContent;
             }
             if (periodSetting) {
                 queueMicrotask(() => setKeepPeriod(periodSetting.value));
@@ -47,6 +55,19 @@ export function SettingLog() {
                 onSuccess: () => {
                     toast.success(t('saved'));
                     initialEnabled.current = checked;
+                }
+            }
+        );
+    };
+
+    const handleSaveContentChange = (checked: boolean) => {
+        setSaveContent(checked);
+        setSetting.mutate(
+            { key: SettingKey.RelayLogSaveContent, value: checked ? 'true' : 'false' },
+            {
+                onSuccess: () => {
+                    toast.success(t('saved'));
+                    initialSaveContent.current = checked;
                 }
             }
         );
@@ -96,6 +117,21 @@ export function SettingLog() {
                 <Switch
                     checked={enabled}
                     onCheckedChange={handleEnabledChange}
+                />
+            </div>
+
+            {/* 是否保存请求/响应内容（隐私保护） */}
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium">{t('log.saveContent.label')}</span>
+                        <span className="text-xs text-muted-foreground">{t('log.saveContent.hint')}</span>
+                    </div>
+                </div>
+                <Switch
+                    checked={saveContent}
+                    onCheckedChange={handleSaveContentChange}
                 />
             </div>
 

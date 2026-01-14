@@ -36,7 +36,6 @@
         "successRequests": "成功请求",
         "failedRequests": "失败请求",
         "quota": "剩余额度",
-        "unlimited": "无限制",
         "expireAt": "过期时间",
         "neverExpire": "永不过期",
         "daysLeft": "天后到期",
@@ -46,7 +45,19 @@
         "rpmLimit": "请求/分钟",
         "rpdLimit": "请求/天",
         "tokenLimit": "输入令牌",
-        "unlimited": "无限制"
+        "unlimited": "无限制",
+        "usageLogs": {
+            "title": "使用记录",
+            "date": "日期",
+            "model": "模型",
+            "inputTokens": "输入",
+            "outputTokens": "输出",
+            "totalTokens": "总计",
+            "cost": "费用",
+            "noLogs": "暂无使用记录",
+            "loadMore": "加载更多",
+            "noMore": "没有更多记录了"
+        }
     },
     "navbar": {
         "home": "主页",
@@ -281,6 +292,10 @@
             "title": "日志设置",
             "enabled": {
                 "label": "启用历史日志"
+            },
+            "saveContent": {
+                "label": "保存请求/响应内容",
+                "hint": "关闭可保护用户隐私"
             },
             "keepPeriod": {
                 "label": "日志保存天数",
