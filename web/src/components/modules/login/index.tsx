@@ -50,7 +50,10 @@ export function LoginForm({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
 
       onLoginSuccess?.()
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : t('error.generic')
+      // Handle both standard Error and ApiError objects
+      const errorMessage = (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string')
+        ? err.message
+        : t('error.generic')
       setError(errorMessage)
     }
   }

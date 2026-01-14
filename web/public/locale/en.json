@@ -11,7 +11,12 @@
             "apikey": "API Key"
         },
         "error": {
-            "generic": "Login failed, please check your credentials"
+            "generic": "Login failed, please check your credentials",
+            "disabled": "API key is disabled",
+            "expired": "API key has expired",
+            "maxCost": "API key has reached maximum cost limit",
+            "rpmLimit": "Rate limit exceeded (requests per minute)",
+            "rpdLimit": "Rate limit exceeded (requests per day)"
         },
         "button": {
             "loading": "Logging in...",

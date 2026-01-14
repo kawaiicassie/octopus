@@ -87,6 +87,7 @@ export function APIKeyDashboard() {
             .split(',')
             .map((m) => m.trim())
             .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b))
         : [];
 
     const supportedModelButtons: JSX.Element[] = supportedModels.map((model) => (

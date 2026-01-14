@@ -11,7 +11,12 @@
             "apikey": "密钥登录"
         },
         "error": {
-            "generic": "登录失败,请检查登录凭据"
+            "generic": "登录失败,请检查登录凭据",
+            "disabled": "API 密钥已被禁用",
+            "expired": "API 密钥已过期",
+            "maxCost": "API 密钥已达到最大费用限制",
+            "rpmLimit": "请求频率超限（每分钟请求数）",
+            "rpdLimit": "请求频率超限（每日请求数）"
         },
         "button": {
             "loading": "登录中...",
