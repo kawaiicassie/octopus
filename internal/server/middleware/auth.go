@@ -84,7 +84,8 @@ func APIKeyAuth() gin.HandlerFunc {
 		c.Set("supported_models", apiKeyObj.SupportedModels)
 		c.Set("api_key_id", apiKeyObj.ID)
 		c.Set("token_limit", apiKeyObj.TokenLimit)
-		op.RateLimitIncrement(apiKeyObj.ID)
+		// op.RateLimitIncrement(apiKeyObj.ID) // Moved to relay.go for accurate counting
+
 		c.Next()
 	}
 }

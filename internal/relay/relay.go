@@ -153,6 +153,8 @@ func Handler(inboundType inbound.InboundType, c *gin.Context) {
 				rc.usedKey.LastUseTimeStamp = time.Now().Unix()
 				rc.usedKey.TotalCost += metrics.Stats.InputCost + metrics.Stats.OutputCost
 				op.ChannelKeyUpdate(rc.usedKey)
+				// Only increment rate limit for successful requests
+				op.RateLimitIncrement(rc.metrics.APIKeyID)
 				metrics.Save(c.Request.Context(), true, nil)
 				return
 			} else {

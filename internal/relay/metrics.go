@@ -90,9 +90,23 @@ func (m *RelayMetrics) SetInternalResponse(resp *transformerModel.InternalLLMRes
 			float64(usage.PromptTokens)*modelPrice.Input +
 			float64(usage.CacheCreationInputTokens)*modelPrice.CacheWrite) * 1e-6
 	} else {
-		m.Stats.InputCost = (float64(usage.PromptTokensDetails.CachedTokens)*modelPrice.CacheRead + float64(usage.PromptTokens-usage.PromptTokensDetails.CachedTokens)*modelPrice.Input) * 1e-6
+
+		// Ensure non-cached tokens is never negative
+		nonCachedTokens := usage.PromptTokens - usage.PromptTokensDetails.CachedTokens
+		if nonCachedTokens < 0 {
+			nonCachedTokens = 0
+		}
+		m.Stats.InputCost = (float64(usage.PromptTokensDetails.CachedTokens)*modelPrice.CacheRead + float64(nonCachedTokens)*modelPrice.Input) * 1e-6
 	}
 	m.Stats.OutputCost = float64(usage.CompletionTokens) * modelPrice.Output * 1e-6
+
+	// Ensure costs are never negative
+	if m.Stats.InputCost < 0 {
+		m.Stats.InputCost = 0
+	}
+	if m.Stats.OutputCost < 0 {
+		m.Stats.OutputCost = 0
+	}
 }
 
 // Save 保存日志和统计信息
