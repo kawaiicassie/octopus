@@ -136,6 +136,21 @@ func Handler(inboundType inbound.InboundType, c *gin.Context) {
 				continue
 			}
 
+			// 验证 channel 类型与请求类型匹配
+			if internalRequest.IsEmbeddingRequest() && !outbound.IsEmbeddingChannelType(channel.Type) {
+				log.Warnf("channel type %d is not compatible with embedding request for channel: %s", channel.Type, channel.Name)
+				lastErr = fmt.Errorf("channel type %d not compatible with embedding request", channel.Type)
+				item = b.Next(group.Items, item)
+				continue
+			}
+
+			if internalRequest.IsChatRequest() && !outbound.IsChatChannelType(channel.Type) {
+				log.Warnf("channel type %d is not compatible with chat request for channel: %s", channel.Type, channel.Name)
+				lastErr = fmt.Errorf("channel type %d not compatible with chat request", channel.Type)
+				item = b.Next(group.Items, item)
+				continue
+			}
+
 			rc := &relayContext{
 				c:                    c,
 				inAdapter:            inAdapter,
@@ -286,6 +301,13 @@ func (rc *relayContext) sendRequest(req *http.Request) (*http.Response, error) {
 
 // handleStreamResponse 处理流式响应
 func (rc *relayContext) handleStreamResponse(ctx context.Context, response *http.Response) error {
+	// 流式响应应当是 SSE
+	// 某些上游可能会返回非SSE的JSON响应 (由于 Accept headers 配置错误)
+	if ct := response.Header.Get("Content-Type"); ct != "" && !strings.Contains(strings.ToLower(ct), "text/event-stream") {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 16*1024))
+		return fmt.Errorf("upstream returned non-SSE content-type %q for stream request: %s", ct, string(body))
+	}
+
 	// 设置 SSE 响应头
 	rc.c.Header("Content-Type", "text/event-stream")
 	rc.c.Header("Cache-Control", "no-cache")
