@@ -100,7 +100,8 @@
             "title": "Ranking",
             "sortByCost": "Cost",
             "sortByCount": "Count",
-            "noData": "No ranking data"
+            "noData": "No ranking data",
+            "successRate": "Success Rate"
         }
     },
     "setting": {
@@ -395,7 +396,11 @@
             "noRequestContent": "(No request content)",
             "noResponseContent": "(No response content)",
             "firstTokenTime": "First Token Time",
-            "tokens": "tokens"
+            "tokens": "tokens",
+            "retryDetails": "Retry Details",
+            "attempts": "attempts",
+            "success": "Success",
+            "failed": "Failed"
         }
     },
     "channel": {
