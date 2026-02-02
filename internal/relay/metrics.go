@@ -225,7 +225,7 @@ func (m *RelayMetrics) saveLog(ctx context.Context, err error, duration time.Dur
 	}
 }
 
-// filterResponseForLog 创建响应的浅拷贝，过滤掉 images 和 MultipleContent 中的图片数据以减少存储压力
+// filterResponseForLog 创建响应的浅拷贝，过滤掉 images、MultipleContent 中的图片数据和 Audio.Data 以减少存储压力
 func (m *RelayMetrics) filterResponseForLog(resp *transformerModel.InternalLLMResponse) *transformerModel.InternalLLMResponse {
 	if resp == nil {
 		return nil
@@ -249,6 +249,12 @@ func (m *RelayMetrics) filterResponseForLog(resp *transformerModel.InternalLLMRe
 			if len(msgCopy.Content.MultipleContent) > 0 {
 				msgCopy.Content = m.filterMessageContent(msgCopy.Content)
 			}
+			// 清除 Audio.Data 字段
+			if msgCopy.Audio != nil && msgCopy.Audio.Data != "" {
+				audioCopy := *msgCopy.Audio
+				audioCopy.Data = "[audio data omitted for storage]"
+				msgCopy.Audio = &audioCopy
+			}
 			filtered.Choices[i].Message = &msgCopy
 		}
 
@@ -262,6 +268,12 @@ func (m *RelayMetrics) filterResponseForLog(resp *transformerModel.InternalLLMRe
 			// 过滤 MultipleContent 中的图片数据
 			if len(deltaCopy.Content.MultipleContent) > 0 {
 				deltaCopy.Content = m.filterMessageContent(deltaCopy.Content)
+			}
+			// 清除 Audio.Data 字段
+			if deltaCopy.Audio != nil && deltaCopy.Audio.Data != "" {
+				audioCopy := *deltaCopy.Audio
+				audioCopy.Data = "[audio data omitted for storage]"
+				deltaCopy.Audio = &audioCopy
 			}
 			filtered.Choices[i].Delta = &deltaCopy
 		}
